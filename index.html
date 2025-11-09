@@ -1,0 +1,844 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>智能旅行助手</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            line-height: 1.5;
+            background-color: #f5f5f5;
+        }
+        
+        .container {
+        max-width: 1100px;
+        margin: 0 auto;
+        padding: 20px;
+        height: 400px;
+    }
+        
+        .header {
+            background-color: #1e90ff;
+            color: white;
+            padding: 20px 0;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .header-content {
+            padding: 0 30px;
+            position: relative;
+            z-index: 2;
+        }
+        
+        .header::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            right: 0;
+            width: 150px;
+            height: 150px;
+            background-color: rgba(255, 255, 255, 0.1);
+            border-radius: 50%;
+            transform: translate(30%, -30%);
+            z-index: 1;
+        }
+        
+        .header-title {
+            font-size: 24px;
+            margin-bottom: 8px;
+            font-weight: 600;
+        }
+        
+        .header-subtitle {
+            font-size: 14px;
+            opacity: 0.9;
+            max-width: 800px;
+        }
+        
+        .main-content {
+            display: flex;
+            gap: 30px;
+            flex-wrap: wrap;
+        }
+        
+        .section {
+            flex: 1;
+            min-width: 300px;
+            background-color: white;
+            border-radius: 8px;
+            padding: 15px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+        }
+        
+        .section-title {
+            font-size: 14px;
+            font-weight: 600;
+            margin-bottom: 10px;
+            color: #333;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+        
+        .refresh-btn {
+            background: none;
+            border: 1px solid #ddd;
+            padding: 5px 10px;
+            border-radius: 5px;
+            cursor: pointer;
+            color: #666;
+            font-size: 14px;
+            transition: all 0.3s;
+        }
+        
+        .refresh-btn:hover {
+            background-color: #f0f0f0;
+            border-color: #ccc;
+        }
+        
+        .experience-categories {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+            overflow-x: auto;
+            padding-bottom: 10px;
+        }
+        
+        .category-btn {
+            background: none;
+            border: 1px solid #ddd;
+            padding: 8px 16px;
+            border-radius: 20px;
+            cursor: pointer;
+            font-size: 14px;
+            white-space: nowrap;
+            transition: all 0.3s;
+        }
+        
+        .category-btn:hover,
+        .category-btn.active {
+            background-color: #1e90ff;
+            color: white;
+            border-color: #1e90ff;
+        }
+        
+        .experience-items {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+            gap: 8px;
+        }
+        
+        .experience-item {
+            background-color: #f9f9f9;
+            border: 1px solid #eee;
+            border-radius: 4px;
+            padding: 8px;
+            cursor: pointer;
+            transition: all 0.3s;
+            text-align: center;
+        }
+        
+        .experience-item:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+            border-color: #1e90ff;
+        }
+        
+        .experience-item-icon {
+            width: 30px;
+            height: 30px;
+            background-color: #1e90ff;
+            border-radius: 50%;
+            margin: 0 auto 6px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 14px;
+        }
+        
+        .experience-item-title {
+            font-size: 11px;
+            font-weight: 500;
+            color: #333;
+        }
+        
+        .notice-list {
+            list-style: none;
+        }
+        
+        .notice-item {
+            padding: 6px;
+            border-bottom: 1px solid #eee;
+            transition: background-color 0.3s;
+            font-size: 12px;
+        }
+        
+        .notice-item:last-child {
+            border-bottom: none;
+        }
+        
+        .notice-item:hover {
+            background-color: #f9f9f9;
+        }
+        
+        .notice-number {
+            display: inline-block;
+            width: 18px;
+            height: 18px;
+            background-color: #1e90ff;
+            color: white;
+            border-radius: 50%;
+            text-align: center;
+            line-height: 18px;
+            font-size: 12px;
+            margin-right: 8px;
+        }
+        
+        /* 弹窗样式 */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .modal-content {
+            background-color: white;
+            padding: 20px;
+            border-radius: 8px;
+            width: 90%;
+            max-width: 450px;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+        }
+        
+        .modal-title {
+            font-size: 18px;
+            font-weight: 600;
+            margin-bottom: 15px;
+            color: #333;
+        }
+        
+        .modal-input {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            font-size: 16px;
+            margin-bottom: 20px;
+        }
+        
+        .modal-buttons {
+            display: flex;
+            gap: 10px;
+            justify-content: flex-end;
+        }
+        
+        .btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+            transition: all 0.3s;
+        }
+        
+        .btn-primary {
+            background-color: #1e90ff;
+            color: white;
+        }
+        
+        .btn-primary:hover {
+            background-color: #1873cc;
+        }
+        
+        .btn-secondary {
+            background-color: #f0f0f0;
+            color: #333;
+        }
+        
+        .btn-secondary:hover {
+            background-color: #e0e0e0;
+        }
+        
+        /* 结果弹窗样式 */
+        .result-modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .result-modal-content {
+            background-color: white;
+            padding: 20px;
+            border-radius: 8px;
+            width: 90%;
+            max-width: 550px;
+            max-height: 80vh;
+            overflow-y: auto;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+        }
+        
+        .result-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+        
+        .result-title {
+            font-size: 18px;
+            font-weight: 600;
+            color: #333;
+        }
+        
+        .close-btn {
+            background: none;
+            border: none;
+            font-size: 24px;
+            cursor: pointer;
+            color: #666;
+            padding: 0;
+            width: 30px;
+            height: 30px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 50%;
+            transition: all 0.3s;
+        }
+        
+        .close-btn:hover {
+            background-color: #f0f0f0;
+            color: #333;
+        }
+        
+        .result-content {
+            margin-bottom: 20px;
+        }
+        
+        .result-item {
+            background-color: #f9f9f9;
+            border-radius: 8px;
+            padding: 15px;
+            margin-bottom: 15px;
+        }
+        
+        .result-item h4 {
+            font-size: 16px;
+            margin-bottom: 8px;
+            color: #1e90ff;
+        }
+        
+        .result-item p {
+            color: #666;
+            line-height: 1.4;
+            font-size: 13px;
+        }
+        
+        .loading {
+            text-align: center;
+            padding: 20px;
+            color: #666;
+        }
+        
+        @media (max-width: 768px) {
+            .main-content {
+                flex-direction: column;
+            }
+            
+            .header-title {
+                font-size: 24px;
+            }
+            
+            .header-subtitle {
+                font-size: 16px;
+            }
+            
+            .container {
+                padding: 10px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <div class="header-content">
+                <h1 class="header-title">你好呀！我是你的智能旅行助手~</h1>
+                <p class="header-subtitle">我能帮你查询景点、规划行程、寻找景点附近住宿、提供天气信息，查询当地的医疗资源等功能哦~</p>
+            </div>
+        </div>
+        
+        <div class="main-content">
+            <div class="section">
+                <h2 class="section-title">
+                    多元体验
+                </h2>
+                
+                <div class="experience-items">
+                    <div class="experience-item" onclick="showInputModal('美食街')">
+                        <div class="experience-item-icon">🍜</div>
+                        <h3 class="experience-item-title">美食街</h3>
+                    </div>
+                    <div class="experience-item" onclick="showInputModal('博物馆')">
+                        <div class="experience-item-icon">🏛️</div>
+                        <h3 class="experience-item-title">博物馆</h3>
+                    </div>
+                    <div class="experience-item" onclick="showInputModal('乡村文化特色')">
+                        <div class="experience-item-icon">🏘️</div>
+                        <h3 class="experience-item-title">乡村文化特色</h3>
+                    </div>
+                    <div class="experience-item" onclick="showInputModal('动物园')">
+                        <div class="experience-item-icon">🐅</div>
+                        <h3 class="experience-item-title">动物园</h3>
+                    </div>
+                    <div class="experience-item" onclick="showInputModal('商业广场')">
+                        <div class="experience-item-icon">🏬</div>
+                        <h3 class="experience-item-title">商业广场</h3>
+                    </div>
+                    <div class="experience-item" onclick="showInputModal('历史文化特色')">
+                        <div class="experience-item-icon">🏯</div>
+                        <h3 class="experience-item-title">历史文化特色</h3>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="section">
+                <h2 class="section-title">
+                    注意事项提醒
+                </h2>
+                
+                <ul class="notice-list">
+                    <li class="notice-item">
+                        <span class="notice-number">1</span>
+                        查询旅游地点需要触发的问题，例如"我想去哪里玩几天"
+                    </li>
+                    <li class="notice-item">
+                        <span class="notice-number">2</span>
+                        查询天气需要触发的问题，例如"查询一下哪里的天气状况"
+                    </li>
+                    <li class="notice-item">
+                        <span class="notice-number">3</span>
+                        查询医疗资源需要触发的问题，例如"查找一下哪里的医疗资源"
+                    </li>
+                    <li class="notice-item">
+                        <span class="notice-number">4</span>
+                        "热门应用"里的应用需要进行登录
+                    </li>
+                    <li class="notice-item">
+                        <span class="notice-number">5</span>
+                        智能体弹出的导航系统需要进行登录
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </div>
+    
+    <!-- 输入目的地弹窗 -->
+    <div class="modal" id="inputModal">
+        <div class="modal-content">
+            <h3 class="modal-title" id="modalTitle">请输入目的地</h3>
+            <input type="text" id="destinationInput" class="modal-input" placeholder="例如：湛江">
+            <div class="modal-buttons">
+                <button class="btn btn-secondary" onclick="closeModal()">取消</button>
+                <button class="btn btn-primary" onclick="searchDestination()">查询</button>
+            </div>
+        </div>
+    </div>
+    
+    <!-- 结果弹窗 -->
+    <div class="result-modal" id="resultModal">
+        <div class="result-modal-content">
+            <div class="result-header">
+                <h3 class="result-title" id="resultTitle"></h3>
+                <button class="close-btn" onclick="closeResultModal()">&times;</button>
+            </div>
+            <div class="result-content" id="resultContent">
+                <div class="loading">加载中...</div>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        // 全局变量存储当前选择的体验类型
+        let currentExperienceType = '';
+        
+        // 显示输入目的地弹窗
+        function showInputModal(type) {
+            currentExperienceType = type;
+            document.getElementById('modalTitle').textContent = `请输入目的地（${type}）`;
+            document.getElementById('destinationInput').value = '';
+            document.getElementById('inputModal').style.display = 'flex';
+        }
+        
+        // 关闭弹窗
+        function closeModal() {
+            document.getElementById('inputModal').style.display = 'none';
+        }
+        
+        // 关闭结果弹窗
+        function closeResultModal() {
+            document.getElementById('resultModal').style.display = 'none';
+        }
+        
+        // 搜索目的地
+        async function searchDestination() {
+            const destination = document.getElementById('destinationInput').value.trim();
+            
+            if (!destination) {
+                alert('请输入目的地');
+                return;
+            }
+            
+            // 关闭输入弹窗
+            closeModal();
+            
+            // 显示结果弹窗
+            document.getElementById('resultTitle').textContent = `${destination}的${currentExperienceType}`;
+            document.getElementById('resultContent').innerHTML = '<div class="loading">正在获取信息...</div>';
+            document.getElementById('resultModal').style.display = 'flex';
+            
+            try {
+                // 调用DeepSeek API获取信息
+                const results = await fetchDeepSeekInfo(destination, currentExperienceType);
+                displayResults(results, destination, currentExperienceType);
+            } catch (error) {
+                document.getElementById('resultContent').innerHTML = 
+                    '<div style="color: red; text-align: center; padding: 20px;">获取信息失败，请稍后重试</div>';
+                console.error('Error fetching data:', error);
+            }
+        
+        // 获取旅游信息 - 优先使用本地模拟数据，尝试API调用增强
+        async function fetchDeepSeekInfo(destination, type) {
+            // 首先获取本地模拟数据作为基础和备份
+            const fallbackData = getFallbackData(destination, type);
+            
+            // 尝试调用API获取更准确的数据，但即使失败也不影响用户体验
+            try {
+                // 使用用户提供的API地址和key
+                const DEEPSEEK_API_KEY = 'sk-23ce4a97e8dd429bbdcea96f87818c6c';
+                const DEEPSEEK_API_URL = 'https://api.deepseek.com/chat/completions';
+                
+                // 准备API请求数据
+                const prompt = `请提供${destination}的${type}信息，包括至少3个具体地点及其简要描述。请使用以下格式返回：
+地点1名称：简要描述
+地点2名称：简要描述
+地点3名称：简要描述`;
+                
+                console.log('尝试调用DeepSeek API获取数据...');
+                
+                // 添加超时处理，避免请求卡住
+                const controller = new AbortController();
+                const timeoutId = setTimeout(() => controller.abort(), 8000); // 8秒超时
+                
+                const response = await fetch(DEEPSEEK_API_URL, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${DEEPSEEK_API_KEY}`
+                    },
+                    body: JSON.stringify({
+                        model: 'deepseek-chat',
+                        messages: [
+                            { role: 'system', content: '你是一个专业的旅行信息助手，请提供准确、有用的旅行信息。' },
+                            { role: 'user', content: prompt }
+                        ],
+                        temperature: 0.7,
+                        max_tokens: 500
+                    }),
+                    signal: controller.signal
+                });
+                
+                clearTimeout(timeoutId); // 清除超时定时器
+                
+                if (!response.ok) {
+                    throw new Error(`HTTP错误! 状态: ${response.status}`);
+                }
+                
+                const data = await response.json();
+                
+                // 解析API返回的内容
+                if (data.choices && data.choices.length > 0 && data.choices[0].message) {
+                    const content = data.choices[0].message.content;
+                    console.log('API返回内容:', content);
+                    
+                    // 提取地点信息
+                    const places = [];
+                    const lines = content.split('\n');
+                    
+                    for (const line of lines) {
+                        const match = line.match(/(.+?)：(.+)/);
+                        if (match && match.length >= 3) {
+                            places.push({
+                                name: match[1].trim(),
+                                desc: match[2].trim()
+                            });
+                        }
+                    }
+                    
+                    // 如果成功提取了地点信息，返回API数据，否则使用模拟数据
+                    if (places.length > 0) {
+                        console.log('成功从API提取地点信息');
+                        return places;
+                    }
+                }
+                
+                console.log('API返回数据格式不符合预期，使用模拟数据');
+                return fallbackData;
+            } catch (error) {
+                console.log('API调用失败或出错，使用本地模拟数据:', error.message);
+                // 显示友好的用户提示
+                showNotification('暂时无法获取最新信息，展示推荐内容');
+                // 始终返回模拟数据，确保用户至少能看到一些内容
+                return fallbackData;
+            }
+        }
+        
+        // 更新加载状态的辅助函数
+        function updateLoadingState(isLoading) {
+            const loadingIndicator = document.getElementById('loading-indicator');
+            if (loadingIndicator) {
+                loadingIndicator.style.display = isLoading ? 'block' : 'none';
+            }
+        }
+        
+        // 显示通知的辅助函数
+        function showNotification(message) {
+            // 检查通知元素是否存在
+            let notification = document.getElementById('notification');
+            if (!notification) {
+                // 创建通知元素
+                notification = document.createElement('div');
+                notification.id = 'notification';
+                notification.style.position = 'fixed';
+                notification.style.top = '20px';
+                notification.style.right = '20px';
+                notification.style.padding = '10px 20px';
+                notification.style.backgroundColor = '#333';
+                notification.style.color = 'white';
+                notification.style.borderRadius = '5px';
+                notification.style.zIndex = '1000';
+                document.body.appendChild(notification);
+                
+                // 添加动画
+                notification.style.transition = 'opacity 0.3s, transform 0.3s';
+                notification.style.opacity = '0';
+                notification.style.transform = 'translateY(-10px)';
+            }
+            
+            // 设置消息内容
+            notification.textContent = message;
+            
+            // 显示通知
+            setTimeout(() => {
+                notification.style.opacity = '1';
+                notification.style.transform = 'translateY(0)';
+            }, 10);
+            
+            // 3秒后隐藏通知
+            setTimeout(() => {
+                notification.style.opacity = '0';
+                notification.style.transform = 'translateY(-10px)';
+                setTimeout(() => {
+                    if (document.body.contains(notification)) {
+                        document.body.removeChild(notification);
+                    }
+                }, 300);
+            }, 3000);
+        }
+        
+        // 获取模拟数据
+        function getFallbackData(destination, type) {
+            const mockData = {
+                '景点': [
+                    { name: `${destination}西湖风景区`, desc: '著名的自然景观，湖光山色，四季皆美。' },
+                    { name: `${destination}古城墙`, desc: '历史悠久的城墙遗址，可俯瞰城市全景。' },
+                    { name: `${destination}山公园`, desc: '城市近郊的森林公园，空气清新，适合徒步。' },
+                    { name: `${destination}水上乐园`, desc: '夏日休闲的好去处，有各种水上娱乐设施。' },
+                    { name: `${destination}滨海浴场`, desc: '美丽的海滩，适合游泳和日光浴。' }
+                ],
+                '美食': [
+                    { name: `${destination}特色小吃街`, desc: '汇集当地各种特色小吃，品种丰富价格实惠。' },
+                    { name: `${destination}海鲜市场`, desc: '新鲜海鲜应有尽有，可以品尝地道海鲜大餐。' },
+                    { name: `${destination}老字号餐厅`, desc: '百年老店，传统美食的代表，值得一试。' },
+                    { name: `${destination}夜市`, desc: '晚上开放的美食夜市，热闹非凡，有各种夜宵小吃。' }
+                ],
+                '博物馆': [
+                    { name: `${destination}市博物馆`, desc: '展示当地历史文化的综合性博物馆。' },
+                    { name: `${destination}历史民俗馆`, desc: '收藏当地传统民俗物品和历史文物。' },
+                    { name: `${destination}乡村记忆馆`, desc: '记录乡村发展历史和传统生活方式的小型展馆。' }
+                ],
+                '乡村文化特色': [
+                    { name: `${destination}古村落`, desc: '保存完好的传统村落，展示当地乡村文化。' },
+                    { name: `${destination}传统手工艺村`, desc: '保留传统手工艺制作技艺的特色村落。' },
+                    { name: `${destination}民俗文化村`, desc: '展示当地民俗风情和传统生活方式。' },
+                    { name: `${destination}乡村文化广场`, desc: '村民进行文化活动和交流的公共场所。' },
+                    { name: `${destination}传统节庆活动点`, desc: '举办传统节日庆典的主要场地。' }
+                ],
+                '动物园': [
+                    { name: `${destination}动物观赏园`, desc: '展示本地常见动物的小型观赏园区。' },
+                    { name: `${destination}生态公园`, desc: '结合自然景观和少量动物展示的公园。' },
+                    { name: `${destination}本地特色鸟类栖息地`, desc: '观赏当地特色鸟类的自然区域。' }
+                ],
+                '商业广场': [
+                    { name: `${destination}中心市场`, desc: '当地主要的商业聚集地，商品种类齐全。' },
+                    { name: `${destination}农贸市场`, desc: '售卖农产品和日用品的传统市场。' },
+                    { name: `${destination}商业街`, desc: '集中了各类商店的主要街道。' },
+                    { name: `${destination}便民服务中心`, desc: '提供各类生活服务的综合场所。' }
+                ]
+            };
+            
+            return mockData[type] || [];
+        }
+        
+        // 搜索目的地信息
+        async function searchDestination() {
+            // 确保DOM元素存在
+            const destinationInput = document.getElementById('destination-input');
+            const categorySelect = document.getElementById('category-select');
+            const resultsModal = document.getElementById('results-modal');
+            const resultsContent = document.getElementById('results-content');
+            
+            if (!destinationInput || !categorySelect || !resultsModal || !resultsContent) {
+                console.error('搜索相关的DOM元素不存在');
+                showNotification('系统错误，请刷新页面重试');
+                return;
+            }
+            
+            const destination = destinationInput.value.trim();
+            const type = categorySelect.value;
+            
+            if (!destination) {
+                showNotification('请输入目的地');
+                return;
+            }
+            
+            try {
+                // 显示加载状态
+                updateLoadingState(true);
+                // 清空之前的结果
+                resultsContent.innerHTML = '';
+                // 显示结果弹窗
+                resultsModal.style.display = 'block';
+                
+                // 获取旅游信息
+                const results = await fetchDeepSeekInfo(destination, type);
+                
+                // 显示结果
+                displayResults(results, destination, type);
+            } catch (error) {
+                console.error('搜索过程中发生错误:', error);
+                showNotification('搜索失败，请稍后重试');
+                resultsModal.style.display = 'none';
+            } finally {
+                // 隐藏加载状态
+                updateLoadingState(false);
+            }
+        }
+        
+        // 显示搜索结果
+        function displayResults(results, destination, type) {
+            // 隐藏加载指示器
+            updateLoadingState(false);
+            
+            const resultsContent = document.getElementById('resultContent');
+            if (!resultsContent) {
+                console.error('结果容器不存在');
+                return;
+            }
+            
+            // 检查结果数据有效性
+            if (!Array.isArray(results)) {
+                console.error('结果数据格式无效');
+                resultsContent.innerHTML = '<p>无法加载数据，请稍后重试</p>';
+                return;
+            }
+            
+            // 过滤无效结果项
+            const validResults = results.filter(item => item && item.name && item.desc);
+            
+            if (validResults.length === 0) {
+                resultsContent.innerHTML = `<p>未找到${destination}的${type}信息</p>`;
+                return;
+            }
+            
+            let html = `<h2>${destination} ${type}推荐</h2><div class="results-list">`;
+            
+            validResults.forEach((result, index) => {
+                html += `
+                    <div class="result-item">
+                        <h3>${result.name}</h3>
+                        <p>${result.desc}</p>
+                    </div>
+                `;
+            });
+            
+            html += '</div>';
+            resultsContent.innerHTML = html;
+        }
+        }
+        
+        // 显示搜索结果
+        function displayResults(results, destination, type) {
+            if (!results || results.length === 0) {
+                document.getElementById('resultContent').innerHTML = 
+                    `<div style="text-align: center; padding: 20px;">暂未找到${destination}的${type}相关信息</div>`;
+                return;
+            }
+            
+            let html = '';
+            results.forEach(item => {
+                html += `
+                    <div class="result-item">
+                        <h4>${item.name}</h4>
+                        <p>${item.desc}</p>
+                    </div>
+                `;
+            });
+            
+            document.getElementById('resultContent').innerHTML = html;
+        }
+        
+        // 移除了刷新功能
+        
+        // 点击模态框外部关闭
+        window.onclick = function(event) {
+            const inputModal = document.getElementById('inputModal');
+            const resultModal = document.getElementById('resultModal');
+            
+            if (event.target === inputModal) {
+                closeModal();
+            }
+            
+            if (event.target === resultModal) {
+                closeResultModal();
+            }
+        }
+    </script>
+</body>
+</html>
